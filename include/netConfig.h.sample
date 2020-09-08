@@ -1,0 +1,26 @@
+// This is a reference example of what the compiler will use for network configuration.
+// Rename this file to netConfig.h and tweak the parameters below.
+#ifndef _NETCONFIG_H
+
+#define _NETCONFIG_H
+
+#define WLAN_SSID       "XXX1"            // Your WiFi AP.
+#define WLAN_PASS       "XXX2"            // Your WiFi AP password.
+#define MQTT_SERVER     "192.168.10.238"  // Address or name of the MQTT server.
+#define MQTT_PORT       1883              // Standard MQTT port 1883.
+#define MQTT_USERNAME   ""                // Set to any username for the MQTT server (default none/empty).
+#define MQTT_PASSWORD   ""                // MQTT user password (default none/empty).
+
+// The mqtt topic prefix that this device will pub/sub
+#define DEV_PREFIX      "/test/"
+
+// Over the air update support knobs
+#define OTA_PORT        8266
+
+// If you want to password protect the OTA access, use either OTA_PASS or OTA_MD5
+// Look at platformio.ini to see how to use these parameters.
+// $ md5 -s "super_secret" --> MD5 ("super_secret") = fa2bf646e49ab5e56f2b74480ba61017
+//#define OTA_PASS      "super_secret"
+//#define OTA_MD5       "fa2bf646e49ab5e56f2b74480ba61017"
+
+#endif // _NETCONFIG_H
