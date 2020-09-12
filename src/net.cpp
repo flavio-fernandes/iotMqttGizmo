@@ -222,17 +222,19 @@ void myMqttLoop()
         {
             message = (const char *)subscription->lastread;
             parseOnOffToggle(MQTT_SUB_HB, message, clearDisableHb, setDisableHb, toggleDisableHb); // off ==> disable ==> set
+            sendOperState();
         }
         else if (subscription == mqttConfig.service_sub_sensor)
         {
             message = (const char *)subscription->lastread;
             parseOnOffToggle(MQTT_SUB_SENSOR, message, clearDisableSensor, setDisableSensor, toggleDisableSensor); // off ==> disable ==> set
+            sendOperState();
         }
         else if (subscription == mqttConfig.service_sub_flags)
         {
             message = (const char *)subscription->lastread;
             char *_end;
-            const uint64_t newFlags = strtoull(message, &_end, 0);
+            const uint64_t newFlags = strtoull(message, &_end, 0) & 0xffffffff;
             // std::istringstream iss(message);
             // iss >> newFlags;
 
@@ -247,6 +249,7 @@ void myMqttLoop()
             Serial.println(buff);
 #endif
             setFlags(state.flags, newFlags);
+            sendOperState();
         }
         else
         {

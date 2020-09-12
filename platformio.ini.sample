@@ -36,8 +36,8 @@ lib_deps =
     ArduinoOTA @ ^1.0
     adafruit/Adafruit Unified Sensor @ ^1.1.4
     adafruit/DHT sensor library @ ^1.3.10
-    Adafruit MQTT Library @ ^1.3.0
-    Ticker @ ^3.2.0
+    Adafruit MQTT Library @ ^2.0.0
+    sstaub/Ticker @ ^3.2.0
 
 
 

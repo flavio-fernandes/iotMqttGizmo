@@ -5,6 +5,7 @@
 #include <inttypes.h>
 
 // #define DEBUG 1
+// #define NEED_PERIODIC_PINGS 1
 
 class TickerScheduler;
 
