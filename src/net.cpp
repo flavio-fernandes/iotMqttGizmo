@@ -17,9 +17,9 @@
 #define MQTT_SUB_PING "ping"
 #define MQTT_SUB_HB "hb"
 #define MQTT_SUB_SENSOR "sensor"
+#define MQTT_SUB_CRAZY_LED "crazy_led"
 #define MQTT_XUB_FLAGS "flags"
 
-#define MQTT_PUB_LIGHT "light"
 #define MQTT_PUB_TEMPERATURE "temperature"
 #define MQTT_PUB_HUMIDITY "humidity"
 
@@ -37,10 +37,10 @@ typedef struct MqttConfig_t
     Adafruit_MQTT_Subscribe *service_sub_ping;
     Adafruit_MQTT_Subscribe *service_sub_heartbeat;
     Adafruit_MQTT_Subscribe *service_sub_sensor;
+    Adafruit_MQTT_Subscribe *service_sub_crazy_led;
     Adafruit_MQTT_Subscribe *service_sub_flags;
 
     Adafruit_MQTT_Publish *service_pub_flags;
-    Adafruit_MQTT_Publish *service_pub_light;
     Adafruit_MQTT_Publish *service_pub_temperature;
     Adafruit_MQTT_Publish *service_pub_humidity;
 
@@ -48,8 +48,8 @@ typedef struct MqttConfig_t
     const char *topicPing;
     const char *topicHeartbeat;
     const char *topicSensor;
+    const char *topicCrazyLed;
     const char *topicFlags;
-    const char *topicLight;
     const char *topicTemperature;
     const char *topicHumidity;
 } MqttConfig;
@@ -153,14 +153,14 @@ void initMyMqtt(TickerScheduler &ts)
     mqttConfig.topicSensor = strdup(tmp.c_str());
     mqttConfig.service_sub_sensor = new Adafruit_MQTT_Subscribe(mqttConfig.mqttPtr, mqttConfig.topicSensor);
 
+    tmp = DEV_PREFIX MQTT_SUB_CRAZY_LED;
+    mqttConfig.topicCrazyLed = strdup(tmp.c_str());
+    mqttConfig.service_sub_crazy_led = new Adafruit_MQTT_Subscribe(mqttConfig.mqttPtr, mqttConfig.topicCrazyLed);
+
     tmp = DEV_PREFIX MQTT_XUB_FLAGS;
     mqttConfig.topicFlags = strdup(tmp.c_str());
     mqttConfig.service_sub_flags = new Adafruit_MQTT_Subscribe(mqttConfig.mqttPtr, mqttConfig.topicFlags);
     mqttConfig.service_pub_flags = new Adafruit_MQTT_Publish(mqttConfig.mqttPtr, mqttConfig.topicFlags);
-
-    tmp = DEV_PREFIX MQTT_PUB_LIGHT;
-    mqttConfig.topicLight = strdup(tmp.c_str());
-    mqttConfig.service_pub_light = new Adafruit_MQTT_Publish(mqttConfig.mqttPtr, mqttConfig.topicLight);
 
     tmp = DEV_PREFIX MQTT_PUB_TEMPERATURE;
     mqttConfig.topicTemperature = strdup(tmp.c_str());
@@ -214,7 +214,6 @@ void myMqttLoop()
 #endif
                 // send operstate, just as a sign of pong
                 sendOperState();
-                sendLightSensor();
                 sendTemperatureSensor();
             }
         }
@@ -228,6 +227,12 @@ void myMqttLoop()
         {
             message = (const char *)subscription->lastread;
             parseOnOffToggle(MQTT_SUB_SENSOR, message, clearDisableSensor, setDisableSensor, toggleDisableSensor); // off ==> disable ==> set
+            sendOperState();
+        }
+        else if (subscription == mqttConfig.service_sub_crazy_led)
+        {
+            message = (const char *)subscription->lastread;
+            parseOnOffToggle(MQTT_SUB_CRAZY_LED, message, setCrazyLed, clearCrazyLed, toggleCrazyLed);
             sendOperState();
         }
         else if (subscription == mqttConfig.service_sub_flags)
@@ -282,6 +287,7 @@ static bool checkWifiConnected()
             if (!mqtt.subscribe(mqttConfig.service_sub_ping) ||
                 !mqtt.subscribe(mqttConfig.service_sub_heartbeat) ||
                 !mqtt.subscribe(mqttConfig.service_sub_sensor) ||
+                !mqtt.subscribe(mqttConfig.service_sub_crazy_led) ||
                 !mqtt.subscribe(mqttConfig.service_sub_flags))
             {
                 gameOver("Fatal: unable to subscribe to mqtt");
@@ -337,7 +343,6 @@ static bool checkMqttConnected()
         // Don't send oper_state. Let mqtt admin dictate what the initial values should
         // be from broker
         // sendOperState();
-        sendLightSensor();
         sendTemperatureSensor();
     }
     else
@@ -372,7 +377,6 @@ static bool checkMqttConnected()
 
 static void mqtt1SecTick()
 {
-    static int lastSentLightSensorValue = state.lightSensor;
     static float lastSentTemperature = state.temperature;
     static float lastSentHumidity = state.humidity;
 
@@ -390,17 +394,6 @@ static void mqtt1SecTick()
         Serial.println("");
     }
 #endif
-
-    const int lightSensorDiff = lastSentLightSensorValue - state.lightSensor;
-    if (abs(lightSensorDiff) >= 256)
-    {
-        lastSentLightSensorValue = state.lightSensor;
-#ifdef DEBUG
-        Serial.print("detected big change in light sensor. Sending update ");
-        Serial.println(lastSentLightSensorValue, DEC);
-#endif
-        sendLightSensor();
-    }
 
     const float temperatureDiff = lastSentTemperature - state.temperature;
     const float humidityDiff = lastSentHumidity - state.humidity;
@@ -445,7 +438,6 @@ static void mqtt10MinTick()
 #endif
     // grauitous
     sendOperState();
-    sendLightSensor();
     sendTemperatureSensor();
 }
 
@@ -475,22 +467,6 @@ void sendOperState()
 static bool isMqttConnected()
 {
     return mqttState.lastMqttConnected;
-}
-
-void sendLightSensor()
-{
-    if (!isMqttConnected())
-        return;
-    if (getFlag(state.flags, stateFlagsDisableSensor))
-        return;
-
-    if (!mqttConfig.service_pub_light->publish((uint32_t)state.lightSensor))
-    {
-#ifdef DEBUG
-        Serial.println("Unable to publish light sensor value");
-#endif
-        mqttConfig.mqttPtr->disconnect();
-    }
 }
 
 void sendTemperatureSensor()

@@ -29,11 +29,12 @@ void toggleDisableHb();
 void setDisableSensor();
 void clearDisableSensor();
 void toggleDisableSensor();
+void setCrazyLed();
+void clearCrazyLed();
+void toggleCrazyLed();
 
 // FWDs decls... heartBeat.cpp, ...
 void initHeartBeat(TickerScheduler &ts);
-void initLightSensor(TickerScheduler &ts);
-void initButton(TickerScheduler &ts);
 void initTemperatureSensor(TickerScheduler &ts);
 void updateTemperatureSensorCachedValue();
 
@@ -41,13 +42,13 @@ void updateTemperatureSensorCachedValue();
 void initMyMqtt(TickerScheduler &ts);
 void myMqttLoop();
 void sendOperState();
-void sendLightSensor();
 void sendTemperatureSensor();
 
 typedef enum
 {
     stateFlagsDisableHeartbeat,
     stateFlagsDisableSensor,
+    stateFlagsCrazyLed,
 } StateFlags;
 
 typedef struct
@@ -58,7 +59,6 @@ typedef struct
 
     float temperature;
     float humidity;
-    int lightSensor;
 } State;
 
 extern State state;

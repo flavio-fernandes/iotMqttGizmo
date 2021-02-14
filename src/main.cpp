@@ -7,10 +7,17 @@ TickerScheduler ts;
 State state;
 
 // Ref: http://www.schatenseite.de/en/2016/04/22/esp8266-witty-cloud-module/
-static const byte sensorDisabled_Led = 15; // RED_LED
-void updateSensorDisableLed()
+static const byte unused_LDR_Pin = A0;
+static const byte unused_button_Pin = 4;
+static const byte unused_button_Led = 13;
+static const byte unused_sensorDisabled_Led = 15;
+
+static void initUnusedPins()
 {
-    digitalWrite(sensorDisabled_Led, getFlag(state.flags, stateFlagsDisableSensor) ? HIGH : LOW);
+    pinMode(unused_LDR_Pin, INPUT);
+    pinMode(unused_button_Pin, INPUT);
+    pinMode(unused_button_Led, OUTPUT);
+    pinMode(unused_sensorDisabled_Led, OUTPUT);
 }
 
 static void initGlobals()
@@ -26,15 +33,13 @@ void setup()
 
     // stage 1
     initGlobals();
+    initUnusedPins();
 
     // stage 2
-    initLightSensor(ts);
     initTemperatureSensor(ts);
     initHeartBeat(ts);
-    initButton(ts);
     initMyMqtt(ts);
 
-    pinMode(sensorDisabled_Led, OUTPUT);
     updateSensorDisableLed();
 
 #ifdef DEBUG
@@ -54,3 +59,6 @@ void toggleDisableHb() { flipFlag(state.flags, stateFlagsDisableHeartbeat); }
 void setDisableSensor() { setFlag(state.flags, stateFlagsDisableSensor); }
 void clearDisableSensor() { clearFlag(state.flags, stateFlagsDisableSensor); }
 void toggleDisableSensor() { flipFlag(state.flags, stateFlagsDisableSensor); }
+void setCrazyLed() { setFlag(state.flags, stateFlagsCrazyLed); }
+void clearCrazyLed() { clearFlag(state.flags, stateFlagsCrazyLed); }
+void toggleCrazyLed() { flipFlag(state.flags, stateFlagsCrazyLed); }

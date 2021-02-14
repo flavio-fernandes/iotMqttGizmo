@@ -4,7 +4,33 @@
 #include <Arduino.h>
 
 // Ref: http://www.schatenseite.de/en/2016/04/22/esp8266-witty-cloud-module/
-static const byte heartBeatPin = 12; // GREEN_LED (in RGB)
+static const byte heartBeatGreenPin = 12;
+static const byte heartBeatRedPin = 13;
+
+static byte currHeartBeatPin = heartBeatGreenPin;
+
+static void setHbLeds(const bool setRedLed)
+{
+    digitalWrite(heartBeatGreenPin, setRedLed ? LOW : HIGH);
+    digitalWrite(heartBeatRedPin, setRedLed ? HIGH : LOW);
+}
+
+void updateSensorDisableLed()
+{
+    const bool isDisabled = getFlag(state.flags, stateFlagsDisableSensor);
+    currHeartBeatPin = isDisabled ? heartBeatRedPin: heartBeatGreenPin;
+    setHbLeds(isDisabled);
+}
+
+static void heartBeatCrazyLedTick()
+{
+    static bool setRedLed;
+    if (!getFlag(state.flags, stateFlagsCrazyLed)) {
+        return;
+    }
+    setHbLeds(setRedLed);
+    setRedLed = !setRedLed;
+}
 
 static void heartBeatTick()
 {
@@ -12,12 +38,16 @@ static void heartBeatTick()
     static const int hbIncrementScale = 15;
     static int hbIncrement = hbIncrementScale;
 
+    if (getFlag(state.flags, stateFlagsCrazyLed)) {
+        return;
+    }
+
     if (getFlag(state.flags, stateFlagsDisableHeartbeat))
     {
         if (hbValue)
         {
             hbValue = 0;
-            analogWrite(heartBeatPin, hbValue);
+            setHbLeds(getFlag(state.flags, stateFlagsDisableSensor));
         }
         return;
     }
@@ -34,11 +64,13 @@ static void heartBeatTick()
         hbValue = 0;
         hbIncrement = hbIncrementScale;
     }
-    analogWrite(heartBeatPin, hbValue);
+    analogWrite(currHeartBeatPin, hbValue);
 }
 
 void initHeartBeat(TickerScheduler &ts)
 {
-    pinMode(heartBeatPin, OUTPUT);
+    pinMode(heartBeatGreenPin, OUTPUT);
+    pinMode(heartBeatRedPin, OUTPUT);
     ts.sched(heartBeatTick, 100);
+    ts.sched(heartBeatCrazyLedTick, 250);
 }
