@@ -7,21 +7,21 @@ Reference IoT project using [platformio.org][pio] with OTA on ESP8266 with DHT22
 - Use [Witty Cloud][witty] Module + [DHT22][dht22] to monitor ambient light, temperature, and humidity
 - Keep it all as cheap as possible
 - Leverage [Arduino Over The Air][ota] library with [platformio.org][pio] for easy code updates
-- Make code stupid simple so it can be easily changed to support different hardware
+- Make code simple, so it can be easily changed to support different hardware
 
 ### Hardware parts
 
 Note: these are the parts I used, but I really hope you can easily leverage this repo to use whatever makes sense to you.
 
 - [Witty Cloud][witty] Module. You can buy one for cheap at many places, such as [DealExtreme](https://www.dx.com/p/esp8266-serial-esp-12f-wi-fi-witty-cloud-development-board-black-2068729.html) or [Amazon](https://amazon.com/dp/B07V2DZCYK/ref=cm_sw_em_r_mt_dp_kqtxFb26W1EPY).
-- [HT22 thermometer][dht22] with jumper cables. Also something you can easily get in places such as [DealExtreme](https://www.dx.com/p/dht22-2302-digital-temperature-and-humidity-sensor-module-2023234.html) or [Amazon](https://amazon.com/dp/B073F472JL/ref=cm_sw_em_r_mt_dp_pttxFb48ZJCY9), or [Adafruit](https://www.adafruit.com/product/393).
+- [DHT22 thermometer][dht22] with jumper cables. Also something you can easily get in places such as [DealExtreme](https://www.dx.com/p/dht22-2302-digital-temperature-and-humidity-sensor-module-2023234.html) or [Amazon](https://amazon.com/dp/B073F472JL/ref=cm_sw_em_r_mt_dp_pttxFb48ZJCY9), or [Adafruit](https://www.adafruit.com/product/393).
 - Cable with micro USB port (a.k.a Micro Type B connector)
 - Power adapter or battery holder to power the Witty Cloud
 
 There is no soldering needed at all for this project. The hookup of the temperature sensor uses the VCC, Ground, and
 [pin 5](https://github.com/flavio-fernandes/iotMqttGizmo/blob/93d035c7597090cd8ba87866c337a9f7e87f9ffa/src/temperature.cpp#L11-L15). You can use a pin other than 5, of course. Just look at the [doc][witty] and picture below for reference.
 
-![witty with DHT22](https://live.staticflickr.com/65535/50334512443_577869e819_4k.jpg)
+![witty with case](https://live.staticflickr.com/65535/51012238916_0be0fdb605_k.jpg)
 
 
 ### Pre-requisites
@@ -106,11 +106,23 @@ $ # causes it to publish on all topics
 $ mosquitto_pub -h $MQTT -t "/${DEV_PREFIX}/ping" -r -n
 ```
 
+### 3d Case
+
+Use the following links to print a case for this project:
+
+- [AM2302/DHT22 Sensor Mount for Extrusion Rail -- thing 4597337](https://www.thingiverse.com/thing:4597337) -- [blog page](https://blog.adafruit.com/2020/11/05/am2302-dht22-sensor-mount-for-extrusion-rail-3dthursday-3dprinting/)
+- [ESP8266 witty case -- thing 1434261](https://www.thingiverse.com/thing:1434261)
+
+
 ### TO DO :construction:
 
-- Talk with my 3d printing gurus about making a nice case for this little gizmo
 - Try [different sensors](https://www.adafruit.com/?q=temperature+sensors&sort=BestMatch)
 
+## Pictures
+
+More pictures on this project are [available here](https://flic.kr/s/aHsmUG2fNW).
+
+![witty with DHT22](https://live.staticflickr.com/65535/50334512443_577869e819_4k.jpg)
 ![witty with DHT22 angle 2](https://live.staticflickr.com/65535/50335359777_ce079a0793_3k.jpg)
 
 
