@@ -63,7 +63,7 @@ These may also be published if a [change is detected](https://github.com/flavio-
 \* If you rather have the temperature in Celcius, comment out the [convert](https://github.com/flavio-fernandes/iotMqttGizmo/blob/93d035c7597090cd8ba87866c337a9f7e87f9ffa/src/temperature.cpp#L39) function.
 
 
-There are 3 topics you can publish to control the device. Actually, [there are 2 more](https://github.com/flavio-fernandes/iotMqttGizmo/blob/93d035c7597090cd8ba87866c337a9f7e87f9ffa/src/net.cpp#L17-L20), but they are just for debug. :sweat_smile:
+There are 3 topics you can publish to control the device. Actually, [there are 2 more](https://github.com/flavio-fernandes/iotMqttGizmo/blob/43143a91d89824b5ee4ab36774f571f879c60c7b/src/net.cpp#L17-L21), but they are just for debug. :sweat_smile:
 
 - /DEV_PREFIX/hb : controls the heartbeat led
 - /DEV_PREFIX/sensor : controls the publishing of light, humidity and temperature values
