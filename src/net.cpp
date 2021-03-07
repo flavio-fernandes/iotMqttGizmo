@@ -16,6 +16,7 @@
 
 #define MQTT_SUB_PING "ping"
 #define MQTT_SUB_HB "hb"
+#define MQTT_SUB_HEATER "heater"
 #define MQTT_SUB_SENSOR "sensor"
 #define MQTT_XUB_FLAGS "flags"
 
@@ -36,6 +37,7 @@ typedef struct MqttConfig_t
 {
     Adafruit_MQTT_Subscribe *service_sub_ping;
     Adafruit_MQTT_Subscribe *service_sub_heartbeat;
+    Adafruit_MQTT_Subscribe *service_sub_heater;
     Adafruit_MQTT_Subscribe *service_sub_sensor;
     Adafruit_MQTT_Subscribe *service_sub_flags;
 
@@ -47,6 +49,7 @@ typedef struct MqttConfig_t
     Adafruit_MQTT_Client *mqttPtr;
     const char *topicPing;
     const char *topicHeartbeat;
+    const char *topicHeater;
     const char *topicSensor;
     const char *topicFlags;
     const char *topicLight;
@@ -149,6 +152,10 @@ void initMyMqtt(TickerScheduler &ts)
     mqttConfig.topicHeartbeat = strdup(tmp.c_str());
     mqttConfig.service_sub_heartbeat = new Adafruit_MQTT_Subscribe(mqttConfig.mqttPtr, mqttConfig.topicHeartbeat);
 
+    tmp = DEV_PREFIX MQTT_SUB_HEATER;
+    mqttConfig.topicHeater = strdup(tmp.c_str());
+    mqttConfig.service_sub_heater = new Adafruit_MQTT_Subscribe(mqttConfig.mqttPtr, mqttConfig.topicHeater);
+
     tmp = DEV_PREFIX MQTT_SUB_SENSOR;
     mqttConfig.topicSensor = strdup(tmp.c_str());
     mqttConfig.service_sub_sensor = new Adafruit_MQTT_Subscribe(mqttConfig.mqttPtr, mqttConfig.topicSensor);
@@ -224,6 +231,12 @@ void myMqttLoop()
             parseOnOffToggle(MQTT_SUB_HB, message, clearDisableHb, setDisableHb, toggleDisableHb); // off ==> disable ==> set
             sendOperState();
         }
+        else if (subscription == mqttConfig.service_sub_heater)
+        {
+            message = (const char *)subscription->lastread;
+            parseOnOffToggle(MQTT_SUB_HEATER, message, setEnableHeater, clearEnableHeater, toggleEnableHeater);
+            sendOperState();
+        }
         else if (subscription == mqttConfig.service_sub_sensor)
         {
             message = (const char *)subscription->lastread;
@@ -281,6 +294,7 @@ static bool checkWifiConnected()
             // idem potent. If it fails, this is a game stopper...
             if (!mqtt.subscribe(mqttConfig.service_sub_ping) ||
                 !mqtt.subscribe(mqttConfig.service_sub_heartbeat) ||
+                !mqtt.subscribe(mqttConfig.service_sub_heater) ||
                 !mqtt.subscribe(mqttConfig.service_sub_sensor) ||
                 !mqtt.subscribe(mqttConfig.service_sub_flags))
             {

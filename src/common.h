@@ -29,6 +29,9 @@ void toggleDisableHb();
 void setDisableSensor();
 void clearDisableSensor();
 void toggleDisableSensor();
+void setEnableHeater();
+void clearEnableHeater();
+void toggleEnableHeater();
 
 // FWDs decls... heartBeat.cpp, ...
 void initHeartBeat(TickerScheduler &ts);
@@ -48,6 +51,7 @@ typedef enum
 {
     stateFlagsDisableHeartbeat,
     stateFlagsDisableSensor,
+    stateFlagsEnableHeater,
 } StateFlags;
 
 typedef struct

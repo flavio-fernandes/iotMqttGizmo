@@ -2,37 +2,27 @@
 #include "tickerScheduler.h"
 
 // http://www.schatenseite.de/en/2016/04/22/esp8266-witty-cloud-module/
-// https://github.com/adafruit/DHT-sensor-library/blob/master/examples/DHT_Unified_Sensor/DHT_Unified_Sensor.ino
+// https://github.com/adafruit/Adafruit_SHT31
+// https://www.adafruit.com/product/2857
 
-#include <Adafruit_Sensor.h>
-#include <DHT.h>
-#include <DHT_U.h>
+#include <Arduino.h>
+#include "Adafruit_SHT31.h"
 
-#define DHTPIN 5 // Digital pin connected to the DHT sensor.
-// ESP8266 – Witty Cloud Module note: use pins:  16, 14, 5
+static Adafruit_SHT31 sht31 = Adafruit_SHT31();
 
-// Feather HUZZAH ESP8266 note: use pins 3, 4, 5, 12, 13 or 14 --
-// Pin 15 can work but DHT must be disconnected during program upload.
-
-// Uncomment the type of sensor in use:
-//#define DHTTYPE    DHT11     // DHT 11
-#define DHTTYPE DHT22 // DHT 22 (AM2302)
-//#define DHTTYPE    DHT21     // DHT 21 (AM2301)
-
-// See guide for details on sensor wiring and usage:
-//   https://learn.adafruit.com/dht/overview
-
-DHT_Unified dht(DHTPIN, DHTTYPE);
+// Use SCL and SDA pins. In ESP8266 – Witty, those are labeled on silk screen
+// GPIO5 (SCL) and GPIO4 (SDA)
+// Ref: https://images.app.goo.gl/xV7ttxv5BHcLP3C3A
 
 static void debugPrintTemperatureSensor()
 {
 #ifdef DEBUG
-    Serial.print(F("Temperature: "));
-    Serial.print(state.temperature);
-    Serial.print(F("°F"));
-    Serial.print(F("  --  Humidity: "));
-    Serial.print(state.humidity);
-    Serial.println(F("%"));
+  Serial.print(F("Temperature: "));
+  Serial.print(state.temperature);
+  Serial.print(F("°F"));
+  Serial.print(F("  --  Humidity: "));
+  Serial.print(state.humidity);
+  Serial.println(F("%"));
 #endif
 }
 
@@ -40,87 +30,77 @@ static float convertCtoF(float c) { return c * 1.8 + 32; }
 
 void updateTemperatureSensorCachedValue()
 {
-    if (getFlag(state.flags, stateFlagsDisableSensor))
-        return;
+  const bool heaterEnabled = sht31.isHeaterEnabled();
 
-    sensors_event_t event;
-    dht.temperature().getEvent(&event);
-    if (isnan(event.temperature))
+  if (getFlag(state.flags, stateFlagsDisableSensor))
+  {
+    if (heaterEnabled)
     {
-#ifdef DEBUG
-        Serial.println(F("Error reading temperature!"));
-#endif
-        return;
+      sht31.heater(false);  // Disabled when sensor is disabled
     }
-    state.temperature = convertCtoF(event.temperature);
+    return;
+  }
 
-    dht.humidity().getEvent(&event);
-    if (isnan(event.relative_humidity))
-    {
+  const float t = sht31.readTemperature();
+  const float h = sht31.readHumidity();
+  const bool heaterEnabledWanted = getFlag(state.flags, stateFlagsEnableHeater);
+
+  if (heaterEnabled != heaterEnabledWanted)
+  {
 #ifdef DEBUG
-        Serial.println(F("Error reading humidity!"));
+    Serial.printf("Setting SHT31 heater: %s\n", heaterEnabledWanted ? "on" : "off");
 #endif
-        return;
-    }
-    state.humidity = event.relative_humidity;
-    debugPrintTemperatureSensor();
+    sht31.heater(heaterEnabledWanted);
+  }
+
+  if (!isnan(t))
+  { // check if 'is not a number'
+    state.temperature = convertCtoF(t);
+  }
+#ifdef DEBUG
+  else
+  {
+    Serial.println("Failed to read temperature");
+  }
+#endif
+
+  if (!isnan(h))
+  { // check if 'is not a number'
+    state.humidity = h;
+  }
+#ifdef DEBUG
+  else
+  {
+    Serial.println("Failed to read humidity");
+  }
+#endif
+  debugPrintTemperatureSensor();
 }
 
 void initTemperatureSensor(TickerScheduler &ts)
 {
-    // Initialize device.
-    dht.begin();
-
-    sensor_t sensor;
-    dht.temperature().getSensor(&sensor);
+  // Initialize device.
+  if (!sht31.begin(0x44))
+  { // Set to 0x45 for alternate i2c addr
+    const char *const msg = "Couldn't find SHT31";
 #ifdef DEBUG
-    Serial.println(F("------------------------------------"));
-    Serial.println(F("Temperature Sensor"));
-    Serial.print(F("Sensor Type: "));
-    Serial.println(sensor.name);
-    Serial.print(F("Driver Ver:  "));
-    Serial.println(sensor.version);
-    Serial.print(F("Unique ID:   "));
-    Serial.println(sensor.sensor_id);
-    Serial.print(F("Max Value:   "));
-    Serial.print(convertCtoF(sensor.max_value));
-    Serial.println(F("°F"));
-    Serial.print(F("Min Value:   "));
-    Serial.print(convertCtoF(sensor.min_value));
-    Serial.println(F("°F"));
-    Serial.print(F("Resolution:  "));
-    Serial.print(sensor.resolution);
-    Serial.println(F("°C"));
-    Serial.println(F("------------------------------------"));
+    Serial.println(msg);
+#endif
+    delay(10000);
+    gameOver(msg);
+  }
+
+#ifdef DEBUG
+  Serial.print("Heater Enabled State: ");
+  if (sht31.isHeaterEnabled())
+    Serial.println("ENABLED");
+  else
+    Serial.println("DISABLED");
 #endif
 
-    // Print humidity sensor details.
-    dht.humidity().getSensor(&sensor);
-#ifdef DEBUG
-    Serial.println(F("Humidity Sensor"));
-    Serial.print(F("Sensor Type: "));
-    Serial.println(sensor.name);
-    Serial.print(F("Driver Ver:  "));
-    Serial.println(sensor.version);
-    Serial.print(F("Unique ID:   "));
-    Serial.println(sensor.sensor_id);
-    Serial.print(F("Max Value:   "));
-    Serial.print(sensor.max_value);
-    Serial.println(F("%"));
-    Serial.print(F("Min Value:   "));
-    Serial.print(sensor.min_value);
-    Serial.println(F("%"));
-    Serial.print(F("Resolution:  "));
-    Serial.print(sensor.resolution);
-    Serial.println(F("%"));
-    Serial.println(F("------------------------------------"));
-#endif
+  updateTemperatureSensorCachedValue();
 
-    const uint32_t delayMS = sensor.min_delay / 1000;
-    delay(delayMS);
-    updateTemperatureSensorCachedValue();
-
-    const uint32_t oneSec = 1000;
-    ts.sched(updateTemperatureSensorCachedValue, oneSec * 45 + delayMS);
-    //ts.sched(debugPrintTemperatureSensor, oneSec * 90);
+  const uint32_t oneSec = 1000;
+  ts.sched(updateTemperatureSensorCachedValue, oneSec * 45);
+  //ts.sched(debugPrintTemperatureSensor, oneSec * 90);
 }

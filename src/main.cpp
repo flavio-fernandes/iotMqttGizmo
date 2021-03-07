@@ -54,3 +54,6 @@ void toggleDisableHb() { flipFlag(state.flags, stateFlagsDisableHeartbeat); }
 void setDisableSensor() { setFlag(state.flags, stateFlagsDisableSensor); }
 void clearDisableSensor() { clearFlag(state.flags, stateFlagsDisableSensor); }
 void toggleDisableSensor() { flipFlag(state.flags, stateFlagsDisableSensor); }
+void setEnableHeater() { setFlag(state.flags, stateFlagsEnableHeater); }
+void clearEnableHeater() { clearFlag(state.flags, stateFlagsEnableHeater); }
+void toggleEnableHeater() { flipFlag(state.flags, stateFlagsEnableHeater); }
