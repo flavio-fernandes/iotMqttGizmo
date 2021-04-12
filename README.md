@@ -120,7 +120,7 @@ Use the following links to print a case for this project:
 
 ## Pictures
 
-More pictures on this project are [available here](https://flic.kr/s/aHsmUG2fNW).
+More pictures of this project are [available here](https://flic.kr/s/aHsmUG2fNW).
 
 ![witty with DHT22](https://live.staticflickr.com/65535/50334512443_577869e819_4k.jpg)
 ![witty with DHT22 angle 2](https://live.staticflickr.com/65535/50335359777_ce079a0793_3k.jpg)

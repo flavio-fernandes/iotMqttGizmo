@@ -52,6 +52,22 @@ void updateTemperatureSensorCachedValue()
 #endif
         return;
     }
+
+    // FIXME(flaviof): I'm seeing a weird issue where once in a
+    // while, the read jumps to a crazy value and then it gets
+    // back to 'normal'. Let's catch those and 'forgetaboutit'.
+    // ex 66f to 43f (18.8c to 6.1c)
+    static float previous_temperature = -999;
+    if (previous_temperature != -999 &&
+        abs((int)(previous_temperature - event.temperature)) > 10)
+    {
+#ifdef DEBUG
+        Serial.println(F("Error reading temperature: crazy jump!"));
+#endif
+        return;
+    }
+    previous_temperature = event.temperature;
+
     state.temperature = convertCtoF(event.temperature);
 
     dht.humidity().getEvent(&event);
