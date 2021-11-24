@@ -17,8 +17,8 @@
 #define MQTT_SUB_PING "ping"
 #define MQTT_SUB_HB "hb"
 #define MQTT_SUB_SENSOR "sensor"
-#define MQTT_XUB_FLAGS "flags"
 
+#define MQTT_PUB_FLAGS "flags"
 #define MQTT_PUB_LIGHT "light"
 #define MQTT_PUB_TEMPERATURE "temperature"
 #define MQTT_PUB_HUMIDITY "humidity"
@@ -37,7 +37,6 @@ typedef struct MqttConfig_t
     Adafruit_MQTT_Subscribe *service_sub_ping;
     Adafruit_MQTT_Subscribe *service_sub_heartbeat;
     Adafruit_MQTT_Subscribe *service_sub_sensor;
-    Adafruit_MQTT_Subscribe *service_sub_flags;
 
     Adafruit_MQTT_Publish *service_pub_flags;
     Adafruit_MQTT_Publish *service_pub_light;
@@ -153,9 +152,8 @@ void initMyMqtt(TickerScheduler &ts)
     mqttConfig.topicSensor = strdup(tmp.c_str());
     mqttConfig.service_sub_sensor = new Adafruit_MQTT_Subscribe(mqttConfig.mqttPtr, mqttConfig.topicSensor);
 
-    tmp = DEV_PREFIX MQTT_XUB_FLAGS;
+    tmp = DEV_PREFIX MQTT_PUB_FLAGS;
     mqttConfig.topicFlags = strdup(tmp.c_str());
-    mqttConfig.service_sub_flags = new Adafruit_MQTT_Subscribe(mqttConfig.mqttPtr, mqttConfig.topicFlags);
     mqttConfig.service_pub_flags = new Adafruit_MQTT_Publish(mqttConfig.mqttPtr, mqttConfig.topicFlags);
 
     tmp = DEV_PREFIX MQTT_PUB_LIGHT;
@@ -230,27 +228,6 @@ void myMqttLoop()
             parseOnOffToggle(MQTT_SUB_SENSOR, message, clearDisableSensor, setDisableSensor, toggleDisableSensor); // off ==> disable ==> set
             sendOperState();
         }
-        else if (subscription == mqttConfig.service_sub_flags)
-        {
-            message = (const char *)subscription->lastread;
-            char *_end;
-            const uint64_t newFlags = strtoull(message, &_end, 0) & 0xffffffff;
-            // std::istringstream iss(message);
-            // iss >> newFlags;
-
-            if (state.flags == newFlags)
-                return; // noop
-#ifdef DEBUG
-            char buff[17];
-            Serial.printf("settting flags as %s -- from: 0x", message);
-            snprintf(buff, sizeof(buff), "%016llx", state.flags);
-            Serial.printf("%s to: 0x", buff);
-            snprintf(buff, sizeof(buff), "%016llx", newFlags);
-            Serial.println(buff);
-#endif
-            setFlags(state.flags, newFlags);
-            sendOperState();
-        }
         else
         {
 #ifdef DEBUG
@@ -281,8 +258,7 @@ static bool checkWifiConnected()
             // idem potent. If it fails, this is a game stopper...
             if (!mqtt.subscribe(mqttConfig.service_sub_ping) ||
                 !mqtt.subscribe(mqttConfig.service_sub_heartbeat) ||
-                !mqtt.subscribe(mqttConfig.service_sub_sensor) ||
-                !mqtt.subscribe(mqttConfig.service_sub_flags))
+                !mqtt.subscribe(mqttConfig.service_sub_sensor))
             {
                 gameOver("Fatal: unable to subscribe to mqtt");
             }
