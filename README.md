@@ -29,7 +29,7 @@ There is no soldering needed at all for this project. The hookup of the temperat
 - [platformio.org][pio] environment (see [platformio-ide](https://platformio.org/platformio-ide))
 - WIFI and an MQTT server
 
-If you do not want to set an MQTT server up, consider [using a pubic](https://github.com/mqtt/mqtt.github.io/wiki/public_brokers) one, like [Adafruit.IO](https://io.adafruit.com/)
+If you do not want to set an MQTT server up, consider [using a public](https://github.com/mqtt/mqtt.github.io/wiki/public_brokers) one, like [Adafruit.IO](https://io.adafruit.com/)
 
 ### Configuration
 

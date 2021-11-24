@@ -18,8 +18,8 @@
 #define MQTT_SUB_HB "hb"
 #define MQTT_SUB_SENSOR "sensor"
 #define MQTT_SUB_CRAZY_LED "crazy_led"
-#define MQTT_XUB_FLAGS "flags"
 
+#define MQTT_PUB_FLAGS "flags"
 #define MQTT_PUB_TEMPERATURE "temperature"
 #define MQTT_PUB_HUMIDITY "humidity"
 
@@ -38,7 +38,6 @@ typedef struct MqttConfig_t
     Adafruit_MQTT_Subscribe *service_sub_heartbeat;
     Adafruit_MQTT_Subscribe *service_sub_sensor;
     Adafruit_MQTT_Subscribe *service_sub_crazy_led;
-    Adafruit_MQTT_Subscribe *service_sub_flags;
 
     Adafruit_MQTT_Publish *service_pub_flags;
     Adafruit_MQTT_Publish *service_pub_temperature;
@@ -157,9 +156,8 @@ void initMyMqtt(TickerScheduler &ts)
     mqttConfig.topicCrazyLed = strdup(tmp.c_str());
     mqttConfig.service_sub_crazy_led = new Adafruit_MQTT_Subscribe(mqttConfig.mqttPtr, mqttConfig.topicCrazyLed);
 
-    tmp = DEV_PREFIX MQTT_XUB_FLAGS;
+    tmp = DEV_PREFIX MQTT_PUB_FLAGS;
     mqttConfig.topicFlags = strdup(tmp.c_str());
-    mqttConfig.service_sub_flags = new Adafruit_MQTT_Subscribe(mqttConfig.mqttPtr, mqttConfig.topicFlags);
     mqttConfig.service_pub_flags = new Adafruit_MQTT_Publish(mqttConfig.mqttPtr, mqttConfig.topicFlags);
 
     tmp = DEV_PREFIX MQTT_PUB_TEMPERATURE;
@@ -235,27 +233,6 @@ void myMqttLoop()
             parseOnOffToggle(MQTT_SUB_CRAZY_LED, message, setCrazyLed, clearCrazyLed, toggleCrazyLed);
             sendOperState();
         }
-        else if (subscription == mqttConfig.service_sub_flags)
-        {
-            message = (const char *)subscription->lastread;
-            char *_end;
-            const uint64_t newFlags = strtoull(message, &_end, 0) & 0xffffffff;
-            // std::istringstream iss(message);
-            // iss >> newFlags;
-
-            if (state.flags == newFlags)
-                return; // noop
-#ifdef DEBUG
-            char buff[17];
-            Serial.printf("settting flags as %s -- from: 0x", message);
-            snprintf(buff, sizeof(buff), "%016llx", state.flags);
-            Serial.printf("%s to: 0x", buff);
-            snprintf(buff, sizeof(buff), "%016llx", newFlags);
-            Serial.println(buff);
-#endif
-            setFlags(state.flags, newFlags);
-            sendOperState();
-        }
         else
         {
 #ifdef DEBUG
@@ -287,8 +264,7 @@ static bool checkWifiConnected()
             if (!mqtt.subscribe(mqttConfig.service_sub_ping) ||
                 !mqtt.subscribe(mqttConfig.service_sub_heartbeat) ||
                 !mqtt.subscribe(mqttConfig.service_sub_sensor) ||
-                !mqtt.subscribe(mqttConfig.service_sub_crazy_led) ||
-                !mqtt.subscribe(mqttConfig.service_sub_flags))
+                !mqtt.subscribe(mqttConfig.service_sub_crazy_led))
             {
                 gameOver("Fatal: unable to subscribe to mqtt");
             }
