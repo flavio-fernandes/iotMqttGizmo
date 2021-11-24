@@ -35,7 +35,7 @@ If you choose to use the [DHT22 thermometer][dht22], be sure to use the [dht22 b
 - [platformio.org][pio] environment (see [platformio-ide](https://platformio.org/platformio-ide))
 - WIFI and an MQTT server
 
-If you do not want to set an MQTT server up, consider [using a pubic](https://github.com/mqtt/mqtt.github.io/wiki/public_brokers) one, like [Adafruit.IO](https://io.adafruit.com/)
+If you do not want to set an MQTT server up, consider [using a public](https://github.com/mqtt/mqtt.github.io/wiki/public_brokers) one, like [Adafruit.IO](https://io.adafruit.com/)
 
 ### Configuration
 
@@ -63,7 +63,7 @@ These may also be published if a [change is detected](https://github.com/flavio-
 \* If you rather have the temperature in Celcius, comment out the [convert](https://github.com/flavio-fernandes/iotMqttGizmo/blob/93d035c7597090cd8ba87866c337a9f7e87f9ffa/src/temperature.cpp#L39) function.
 
 
-There are 3 topics you can publish to control the device. Actually, [there are 2 more](https://github.com/flavio-fernandes/iotMqttGizmo/blob/43143a91d89824b5ee4ab36774f571f879c60c7b/src/net.cpp#L17-L21), but they are just for debug. :sweat_smile:
+There are 3 topics you can publish to control the device:
 
 - /DEV_PREFIX/hb : controls the heartbeat led
 - /DEV_PREFIX/sensor : controls the publishing of light, humidity and temperature values
@@ -106,8 +106,6 @@ $ mosquitto_pub -h $MQTT -t "/${DEV_PREFIX}/heater" -m off
 $ mosquitto_pub -h $MQTT -t "/${DEV_PREFIX}/sensor" -m off
 $ mosquitto_pub -h $MQTT -t "/${DEV_PREFIX}/sensor" -m toggle
 
-$ # backdoor for disabling both hb and sensor. Don't do it! ;)
-$ mosquitto_pub -h $MQTT -t "/${DEV_PREFIX}/flags" -m 3
 $ # dog timer reset. Not used unless you mess with NEED_PERIODIC_PINGS
 $ mosquitto_pub -h $MQTT -t "/${DEV_PREFIX}/ping" -m periodic
 $ # causes it to publish on all topics
